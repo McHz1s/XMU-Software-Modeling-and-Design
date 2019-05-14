@@ -8,23 +8,28 @@ class CarvanaSoftware(QDialog):
         super(CarvanaSoftware, self).__init__(parent)
         self.config = config
         self._title = "CarBackgroundRemove"
-        self._diawidth = 600
-        self._diaheight = 600
+        self._diawidth = 1600
+        self._diaheight = 800
         self.setWindowTitle(self._title)
         self.setMinimumHeight(self._diaheight)
         self.setMinimumWidth(self._diawidth)
         self.source_img_view = QLabel("add a image file")
-        self.source_img_view.setAlignment(Qt.AlignCenter)
         self.target_img_view = QLabel("waiting a source file")
-        self.target_img_view.setAlignment(Qt.AlignCenter)
         self.btn_open = QPushButton("open")
         self.btn_open.clicked.connect(self.on_btn_open_clicked)
-        self.vlayout = QVBoxLayout()
-        self.vlayout.addWidget(self.source_img_view)
-        self.vlayout.addWidget(self.target_img_view)
-        self.vlayout.addWidget(self.btn_open)
-        self.setLayout(self.vlayout)
-        
+        self.btn_save = QPushButton("save")
+        self.btn_save.clicked.connect(self.save)
+        self.hlayout = QHBoxLayout()
+        self.hlayout.addWidget(self.source_img_view, 0, Qt.AlignLeft | Qt.AlignCenter)
+        self.hlayout.addWidget(self.btn_open, 0, Qt.AlignBottom | Qt.AlignCenter)
+        self.hlayout.addWidget(self.btn_save, 0, Qt.AlignBottom | Qt.AlignCenter)
+        self.hlayout.addWidget(self.target_img_view, 0, Qt.AlignRight | Qt.AlignCenter)
+        self.setLayout(self.hlayout)
+        self.hlayout.setStretchFactor(self.btn_open, 1)
+        self.hlayout.setStretchFactor(self.source_img_view, 6)
+        self.hlayout.setStretchFactor(self.target_img_view, 6)
+        self.result = []
+        self.img_name = None
     # @pyqtSlot(bool)
     def predict(self, filepath, origin_width, origin_height):
         config = CarvanaConfig()
@@ -38,14 +43,18 @@ class CarvanaSoftware(QDialog):
         self.filename = QFileDialog.getOpenFileName(self, "OpenFile", ".", 
             "Image Files(*.jpg *.jpeg *.png)")[0]
         if len(self.filename):
-            self.image = QImage(self.filename)
-            self.source_img_view.setPixmap(QPixmap.fromImage(self.image))
-            self.resize(self.image.width(), self.image.height())
-            result = self.predict(self.filename, self.image.width(), self.image.height())
-            # import matplotlib.pyplot as plt
-            # plt.imshow(result)
-            # plt.show()
-            imwrite('temp.jpg', result)
-            self.image = QImage('temp.jpg')
-            self.target_img_view.setPixmap(QPixmap.fromImage(self.image))
-            self.resize(self.image.width(), 2*self.image.height())
+            src = QImage(self.filename)
+            self.img_name = (self.filename.split('/')[-1]).split('.')[0]
+            print(self.img_name)
+            self.source_img_view.setPixmap(QPixmap.fromImage(src))
+            self.resize(src.width(), src.height())
+            self.result = self.predict(self.filename, src.width(), src.height())
+            imwrite('temp.jpg', self.result)
+            tar = QImage('temp.jpg')
+            self.target_img_view.setPixmap(QPixmap.fromImage(tar))
+            # self.resize(src.width(), 2*src.height())
+
+    def save(self):
+        if self.img_name is None:
+            return None
+        imwrite(self.img_name+'_RB.jpg', self.result)
