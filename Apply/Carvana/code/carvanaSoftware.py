@@ -3,6 +3,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from CarvanaSoftwareData import *
 
+
 class CarvanaSoftware(QDialog):
     def __init__(self,  config, parent=None):
         super(CarvanaSoftware, self).__init__(parent)
@@ -16,9 +17,9 @@ class CarvanaSoftware(QDialog):
         self.source_img_view = QLabel("add a image file")
         self.target_img_view = QLabel("waiting a source file")
         self.btn_open = QPushButton("open")
-        self.btn_open.clicked.connect(self.on_btn_open_clicked)
+        self.btn_open.clicked.connect(self.open_clicked)
         self.btn_save = QPushButton("save")
-        self.btn_save.clicked.connect(self.save)
+        self.btn_save.clicked.connect(self.save_clicked)
         self.hlayout = QHBoxLayout()
         self.hlayout.addWidget(self.source_img_view, 0, Qt.AlignLeft | Qt.AlignCenter)
         self.hlayout.addWidget(self.btn_open, 0, Qt.AlignBottom | Qt.AlignCenter)
@@ -30,7 +31,7 @@ class CarvanaSoftware(QDialog):
         self.hlayout.setStretchFactor(self.target_img_view, 6)
         self.result = []
         self.img_name = None
-    # @pyqtSlot(bool)
+
     def predict(self, filepath, origin_width, origin_height):
         config = CarvanaConfig()
         data = SoftData(config=config, mode='prediction')
@@ -39,7 +40,7 @@ class CarvanaSoftware(QDialog):
         result = data.deal_result(result, origin_width, origin_height)
         return result
 
-    def on_btn_open_clicked(self, checked):
+    def open_clicked(self, checked):
         self.filename = QFileDialog.getOpenFileName(self, "OpenFile", ".", 
             "Image Files(*.jpg *.jpeg *.png)")[0]
         if len(self.filename):
@@ -52,9 +53,8 @@ class CarvanaSoftware(QDialog):
             imwrite('temp.jpg', self.result)
             tar = QImage('temp.jpg')
             self.target_img_view.setPixmap(QPixmap.fromImage(tar))
-            # self.resize(src.width(), 2*src.height())
 
-    def save(self):
+    def save_clicked(self):
         if self.img_name is None:
             return None
         imwrite(self.img_name+'_RB.jpg', self.result)
